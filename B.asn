@@ -1,0 +1,124 @@
+;Read a Muti-Digit Input Value and Output a Multi-Digit Product
+;Use external procedures indec and outdec 
+;by Brian McBride
+
+.model small
+.stack 100h
+.data
+		 
+	menu_select db ?
+	;sys prompt001
+	prompt_arr db 0ah,0dh,'>','$'
+	money_count db 0ah,0dh,'Money: ','$'
+	newline db 10,13,'$'
+	dealer_val db 0ah,0dh,'Dealers Cards:','$'
+	player_val db 0ah,0dh,'Your Cards:','$'
+	;menu dialog
+	prompt001 db 0ah,0dh,'Welcome to blackjack.. ','$'
+	prompt002 db 0ah,0dh,'Please select from the following  1.Play game,  2.exit game','$'
+	prompt003 db 0ah,0dh,'Invalid Instruction','$'
+	;Dealer dialog
+	promptA db 0ah,0dh,'place your bets:','$'
+	
+	
+	;game variables
+	money_val dw 500
+	player dw ?
+	dealer dw ?
+	player_response db ?
+	
+.code
+	extrn indec: proc
+	extrn outdec: proc
+	include myMacros.asm
+
+		main proc
+		mov ax,@data ;load ax with address where the data segment begins.
+		mov ds,ax ;load datasegment pointer with address stored in ax
+		;-----------------
+		;Enter video mode
+		;-----------------
+		;mov ax,19 ; call high order byte to switch to video mode in DOS
+		;int 16
+		;-----------------
+		
+		mov bx, 1; 
+		
+		
+		Menu: 
+			
+			L1:
+			prtStr prompt002
+			prtStr prompt_arr
+			;int 21h
+			
+			readCh menu_select
+			
+			;Macro possibility here----------------
+			mov cl, 1 ;move a 1 to the c low reg
+			cmp cl,menu_select ;jump to game if cl  == 1
+			je Game; 
+			
+			mov cl,2 ;move a 2 to the c low reg
+			cmp cl,menu_select ; jump to exit if cl == 2
+			je exit
+			;--------------------------------------
+			
+			;else
+			prtStr prompt003 
+			jmp L1
+
+		
+		
+		Game:
+			prtStr prompt001
+			L2:
+			;==============================
+			; begin blackjack logic
+			;==============================
+			; Begin Gameloop, money always printed on each loop iteration
+			; Deal Cards;  Player gets 2 and Dealer gets 1
+			; Random number between 1 and 10
+			; If value is 10 then will add a suffix to the card J,A,K,Q
+			; 
+			
+			;Pre loop 
+			
+			;print money value
+			;prtStr money_count
+			;mov ax,money_val;
+			;call outdec
+			
+			;deal inital cards
+			prtStr dealer_val
+			rndNum dealer,1,10
+			mov ax,dealer
+			call outdec
+			xor ax,ax
+			prtStr newline
+			prtStr newline
+			prtStr player_val
+			rdelay:
+			inc cl
+			cmp cl,1000
+			jle rdelay	
+			rndNum player,1,10
+			mov ax,player
+			call outdec
+			readCh player_response
+			clrScr
+			jmp L2
+			
+			;jle L2 ; Jump here for now...
+			;jmp exit
+			
+			
+			
+		exit:
+		
+			mov ax,3
+			int 16
+			mov ah,4ch	; load the high order byte of the ax with 4ch (return to DOS)
+			int 21h
+			endp
+end main
